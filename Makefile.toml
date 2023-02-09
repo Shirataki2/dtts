@@ -1,0 +1,54 @@
+[config]
+skip_core_tasks = true
+
+[env.ENV]
+source = "${CARGO_MAKE_PROFILE}"
+default_value = "dev"
+mapping = { prod = "prod", production = "prod", stage = "stage" }
+
+[env]
+DOCKER_ARGUMENTS = "-f docker-compose.${ENV}.yml"
+
+[tasks.prepare]
+script = """
+docker run --rm -v $(pwd)/data/grafana:/dir alpine chown 472:472 /dir -R
+docker-compose -f docker-compose.${ENV}.yml restart grafana
+docker exec -it influxdb /bin/bash -c \
+  'influx v1 dbrp create \
+  --db my-bucket \
+  --rp example-rp \
+  --default \
+  --bucket-id  `influx bucket list -n my-bucket --hide-headers|cut -f 1`'
+"""
+
+[tasks.build]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "build", "${@}"]
+
+[tasks.up]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "up", "-d", "${@}"]
+
+[tasks.ps]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "ps", "${@}"]
+
+[tasks.restart]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "restart", "${@}"]
+
+[tasks.logs]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "logs", "--tail", "100", "-f", "${@}"]
+
+[tasks.exec]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "exec", "${@}"]
+
+[tasks.stop]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "stop", "${@}"]
+
+[tasks.start]
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "start", "${@}"]

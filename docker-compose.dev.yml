@@ -1,0 +1,143 @@
+version: "3"
+
+x-logging: &default-logging
+  driver: "loki"
+  options:
+    loki-url: http://localhost:3100/loki/api/v1/push
+
+services:
+  web:
+    logging: *default-logging
+    build:
+      context: ./web
+      dockerfile: Dockerfile.dev
+    ports:
+      - 3000
+      - 6006:6006 # for storybook
+      - 24678:24678 # for devtools
+    volumes:
+      - ./web:/app:rw
+    entrypoint: bash
+    tty: true
+    env_file:
+      - .env.dev
+    labels:
+      traefik.http.routers.dtts-web.rule: PathPrefix(`/`)
+      traefik.http.services.dtts-web.loadbalancer.server.port: 3000
+  api:
+    logging: *default-logging
+    build:
+      context: ./api
+      dockerfile: Dockerfile.dev
+    ports:
+      - 5000
+    volumes:
+      - ./api:/app:rw
+    entrypoint: cargo run --bin serve
+    tty: true
+    env_file:
+      - .env.dev
+    labels:
+      traefik.http.routers.dtts-api.rule: PathPrefix(`/api`)
+      traefik.http.routers.dtts-api.middlewares: dtts-api-stripprefix
+      traefik.http.middlewares.dtts-api-stripprefix.stripprefix.prefixes: /api
+      traefik.http.services.dtts-api.loadbalancer.server.port: 5000
+
+  bot:
+    logging: *default-logging
+    build:
+      context: ./bot
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./bot:/app:rw
+    entrypoint: bash
+    tty: true
+    env_file:
+      - .env.dev
+
+  postgres:
+    logging: *default-logging
+    image: postgres:15.1
+    container_name: postgres
+    restart: always
+    ports:
+      - 12484:5432
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    env_file:
+      - .env.dev
+
+  redis:
+    logging: *default-logging
+    image: redis:7.0
+    container_name: redis
+    restart: always
+    ports:
+      - 6379
+    volumes:
+      - ./data/redis:/data
+    env_file:
+      - .env.dev
+
+  traefik:
+    logging: *default-logging
+    image: traefik:v2.5.3
+    restart: always
+    ports:
+      - 13080:80
+      - 13443:443
+      - 18080:8080
+    volumes:
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+  influxdb:
+    logging: *default-logging
+    image: influxdb:2.6
+    container_name: influxdb
+    restart: always
+    ports:
+      - 8086:8086
+    volumes:
+      - ./data/influxdb2:/var/lib/influxdb2
+      - ./config/influxdb2:/etc/influxdb2
+    env_file:
+      - .env.dev
+  grafana:
+    logging: *default-logging
+    image: grafana/grafana:9.3.6
+    container_name: grafana
+    restart: always
+    ports:
+      - 3000:3000
+    volumes:
+      - ./config/grafana.ini:/etc/grafana/grafana.ini:ro
+      - ./data/grafana:/var/lib/grafana
+    env_file:
+      - .env.dev
+    depends_on:
+      - influxdb
+  telegraf:
+    logging: *default-logging
+    image: telegraf:1.25.0
+    container_name: telegraf
+    restart: always
+    volumes:
+      - ./config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc:/rootfs/proc:ro
+      - /sys:/rootfs/sys:ro
+      - /etc:/rootfs/etc:ro
+    env_file:
+      - .env.dev
+    environment:
+      - HOST_PROC=/rootfs/proc
+      - HOST_SYS=/rootfs/sys
+      - HOST_ETC=/rootfs/etc
+    depends_on:
+      - influxdb
+  loki:
+    image: grafana/loki:2.7.3
+    container_name: loki
+    ports:
+      - 3100:3100
+    command: -config.file=/etc/loki/local-config.yaml
