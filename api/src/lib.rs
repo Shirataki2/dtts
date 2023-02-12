@@ -101,6 +101,7 @@ pub async fn run(cfg: config::ServerConfig) -> std::io::Result<()> {
             .app_data(cfg2.clone())
             .app_data(redis_client)
             .app_data(stripe_client)
+            .wrap(actix_web::middleware::Compress::default())
             .wrap(actix_web::middleware::Logger::default())
             .wrap(
                 SessionMiddleware::builder(RedisActorSessionStore::new(scheme_stripped), redis_key)

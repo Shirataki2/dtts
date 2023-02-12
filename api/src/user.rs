@@ -44,12 +44,11 @@ impl FromRequest for User {
 
     fn from_request(
         req: &actix_web::HttpRequest,
-        payload: &mut actix_web::dev::Payload,
+        _payload: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         let req2 = Arc::new(req.clone());
-        let mut payload2 = payload.take();
         Box::pin(async move {
-            let sess = actix_session::Session::from_request(&req2, &mut payload2).await?;
+            let sess = actix_session::Session::extract(&req2).await?;
             if let Some(user) = sess.get::<serenity::CurrentUser>("user")? {
                 Ok(User(user))
             } else {
@@ -78,12 +77,11 @@ impl FromRequest for UserToken {
 
     fn from_request(
         req: &actix_web::HttpRequest,
-        payload: &mut actix_web::dev::Payload,
+        _payload: &mut actix_web::dev::Payload,
     ) -> Self::Future {
         let req2 = Arc::new(req.clone());
-        let mut payload2 = payload.take();
         Box::pin(async move {
-            let sess = actix_session::Session::from_request(&req2, &mut payload2).await?;
+            let sess = actix_session::Session::extract(&req2).await?;
             let token = get_access_token(&sess)?;
             Ok(UserToken(token))
         })

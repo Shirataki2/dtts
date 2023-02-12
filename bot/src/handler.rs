@@ -2,7 +2,7 @@ use std::sync::{atomic::Ordering, Arc};
 
 use poise::BoxFuture;
 
-use crate::{models, serenity, Data, Error, tasks};
+use crate::{models, serenity, tasks, Data, Error};
 
 pub fn handle_event<'a>(
     ctx: &'a serenity::Context,

@@ -9,8 +9,16 @@ mapping = { prod = "prod", production = "prod", stage = "stage" }
 [env]
 DOCKER_ARGUMENTS = "-f docker-compose.${ENV}.yml"
 
+[tasks.help]
+description = "Show help"
+command = "cargo"
+args = ["make", "--list-all-steps"]
+
 [tasks.prepare]
+category = "Docker"
+description = "Install docker dependencies and create grafana buckets"
 script = """
+docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
 docker run --rm -v $(pwd)/data/grafana:/dir alpine chown 472:472 /dir -R
 docker-compose -f docker-compose.${ENV}.yml restart grafana
 docker exec -it influxdb /bin/bash -c \
@@ -22,33 +30,55 @@ docker exec -it influxdb /bin/bash -c \
 """
 
 [tasks.build]
+category = "Docker"
+description = "Build docker images"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "build", "${@}"]
 
 [tasks.up]
+category = "Docker"
+description = "Create and Start docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "up", "-d", "${@}"]
 
 [tasks.ps]
+category = "Docker"
+description = "List running docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "ps", "${@}"]
 
 [tasks.restart]
+category = "Docker"
+description = "Restart docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "restart", "${@}"]
 
 [tasks.logs]
+category = "Docker"
+description = "Show docker logs"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "logs", "--tail", "100", "-f", "${@}"]
 
 [tasks.exec]
+category = "Docker"
+description = "Execute command in docker container"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "exec", "${@}"]
 
 [tasks.stop]
+category = "Docker"
+description = "Stop docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "stop", "${@}"]
 
 [tasks.start]
+category = "Docker"
+description = "Start docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "start", "${@}"]
+
+[tasks.down]
+category = "Docker"
+description = "Stop and remove docker containers"
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "down"]

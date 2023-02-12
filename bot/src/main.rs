@@ -7,6 +7,7 @@ extern crate maplit;
 
 pub mod commands;
 pub mod data;
+pub mod error;
 pub mod handler;
 pub mod logs;
 pub mod models;

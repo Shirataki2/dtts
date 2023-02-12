@@ -1,7 +1,7 @@
 pub use std::{collections::HashSet, sync::Arc};
 
 pub use actix_web::{
-    web::{Data, Json, Path, Query},
+    web::{Bytes, Data, Json, Path, Payload, Query},
     HttpRequest, HttpResponse,
 };
 pub use sqlx::PgPool;

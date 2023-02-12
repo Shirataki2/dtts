@@ -23,9 +23,9 @@ const emits = defineEmits(['click'])
         :disabled="props.disabled"
         :icon="props.icon"
         @click="emits('click')"
-        class="mx-1"
       />
     </template>
     <span>{{ props.tip }}</span>
+    <slot />
   </VTooltip>
 </template>

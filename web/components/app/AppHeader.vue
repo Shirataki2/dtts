@@ -6,7 +6,7 @@ const { isLoggedin } = useUser()
 </script>
 
 <template>
-  <VAppBar app flat density="comfortable" color="header">
+  <VAppBar app flat density="comfortable" color="header" style="width: 100%">
     <VAppBarNavIcon @click.stop="drawer = !drawer" />
     <VToolbarTitle class="pointer" @click="$router.push({ name: 'index' })">
       <span class="font-weight-bold">{{ config.application.name }}</span>

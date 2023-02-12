@@ -1,5 +1,5 @@
 <template>
-  <VFooter app>
+  <VFooter app style="width: 100%">
     <span>v 0.1.0</span>
     <VSpacer />
     <span>&copy; 2023</span>

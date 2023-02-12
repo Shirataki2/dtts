@@ -32,13 +32,26 @@ export default defineNuxtConfig({
       'process.env.DEBUG': false,
     },
   },
-  modules: ['@vueuse/nuxt', '@kevinmarrec/nuxt-pwa'],
+  modules: ['@vueuse/nuxt', '@kevinmarrec/nuxt-pwa', '@nuxt/devtools'],
   pwa: {
     meta: {
+      name: conf.application.name,
+      author: conf.application.author,
+      description: conf.application.description,
+      lang: 'ja',
       mobileAppIOS: true,
     },
     workbox: {
       enabled: !isDev,
+    },
+    manifest: {
+      name: conf.application.name,
+      short_name: conf.application.name,
+      description: conf.application.description,
+      lang: 'ja',
+      display: 'standalone',
+      background_color: conf.application.background_color,
+      theme_color: conf.application.theme_color,
     },
   },
 })

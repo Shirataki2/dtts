@@ -27,8 +27,10 @@ useHead({
   <LayoutContained variant="compact" v-else-if="!pending && !guild">
     <ServerNotFound />
   </LayoutContained>
-  <LayoutCentered v-else>
-    <VProgressCircular indeterminate />
-    <p class="my-5">サーバー情報を取得中...</p>
+  <LayoutCentered variant="wide" v-else>
+    <VCard>
+      <VProgressCircular class="mt-10" indeterminate />
+      <p class="my-7">サーバー情報を取得中...</p>
+    </VCard>
   </LayoutCentered>
 </template>
