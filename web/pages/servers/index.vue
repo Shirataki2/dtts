@@ -19,9 +19,7 @@ onMounted(async () => {
 <template>
   <LayoutContained variant="compact">
     <VCard>
-      <VCardTitle class="text-center">
-        <h1 class="text-h6">サーバーを選択してください</h1>
-      </VCardTitle>
+      <PageTitle>サーバー一覧</PageTitle>
       <ServerList :loading="loading" :servers="userGuilds" />
     </VCard>
   </LayoutContained>

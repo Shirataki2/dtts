@@ -1,11 +1,6 @@
 use crate::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct GetDictQuery {
-    pub id: i64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DictItem {
     pub order: i32,
     pub word: String,
@@ -16,7 +11,7 @@ pub struct DictItem {
 pub async fn get_dict(
     req: HttpRequest,
     _user: User, // for auth
-    query: Query<GetDictQuery>,
+    query: Query<ServerDetailQuery>,
 ) -> Result<HttpResponse, Error> {
     let pool = get_data::<PgPool>(&req)?;
     let dict = Dictionary::optional_get(pool, query.id).await?;
@@ -37,8 +32,8 @@ pub async fn get_dict(
 #[post("/dict")]
 pub async fn post_dict(
     req: HttpRequest,
-    _user: User, // for auth
-    query: Query<GetDictQuery>,
+    _user: Member, // for auth
+    query: Query<ServerDetailQuery>,
     body: Json<Vec<DictItem>>,
 ) -> Result<HttpResponse, Error> {
     let pool = get_data::<PgPool>(&req)?;

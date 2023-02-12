@@ -212,7 +212,5 @@ const readFromFile = (e: Event) => {
         />
       </VCol>
     </VRow>
-    <DevShowCode :code="props.dict" />
-    <DevShowCode :code="initialDict" />
   </VContainer>
 </template>

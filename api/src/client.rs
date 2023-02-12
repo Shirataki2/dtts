@@ -49,13 +49,33 @@ impl Client {
         Ok(guilds)
     }
 
-    pub async fn get_server(&self, id: u64) -> Result<Option<serenity::PartialGuild>, Error> {
+    pub async fn get_server(&self, id: i64) -> Result<Option<serenity::PartialGuild>, Error> {
         let url = format!("{}/guilds/{}", crate::DISCORD_API_URL, id);
         let resp = self.inner.get(&url).send().await?;
         if resp.status() == StatusCode::NOT_FOUND {
             return Ok(None);
         }
         let guild = check_response!(serenity::PartialGuild: resp);
+        Ok(Some(guild))
+    }
+
+    pub async fn get_member(
+        &self,
+        guild_id: i64,
+        user_id: i64,
+    ) -> Result<Option<serenity::PartialMember>, Error> {
+        let url = format!(
+            "{}/guilds/{}/members/{}",
+            crate::DISCORD_API_URL,
+            guild_id,
+            user_id
+        );
+        let resp = self.inner.get(&url).send().await?;
+        if resp.status() == StatusCode::NOT_FOUND {
+            return Ok(None);
+        }
+        debug!("Resp Headers: {:?}", resp.headers());
+        let guild = check_response!(serenity::PartialMember: resp);
         Ok(Some(guild))
     }
 }

@@ -1,10 +1,5 @@
 use crate::prelude::*;
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ServerDetailQuery {
-    pub id: u64,
-}
-
 #[get("")]
 pub async fn index(
     req: HttpRequest,

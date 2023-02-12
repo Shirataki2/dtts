@@ -37,9 +37,7 @@ onMounted(() => {
 <template>
   <LayoutContained variant="wide" v-if="!pending && show">
     <VCard>
-      <VCardTitle class="text-center">
-        <h1 class="text-h6">辞書編集</h1>
-      </VCardTitle>
+      <PageTitle>辞書編集</PageTitle>
       <DictToolbar
         :dict="dict"
         :dict-history="dictHistory"

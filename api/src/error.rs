@@ -5,11 +5,15 @@ pub enum Error {
     #[error("{0} Not Found")]
     NotFound(String),
     #[error("{0}")]
+    BadRequest(String),
+    #[error("{0}")]
     DeserializeError(#[from] serde_json::Error),
     #[error("{0}")]
     DatabaseError(#[from] sqlx::Error),
     #[error("{0}")]
     Unauthorized(String),
+    #[error("{0}")]
+    Forbidden(String),
     #[error("{0}")]
     SessionGetError(#[from] actix_session::SessionGetError),
     #[error("{0}")]
@@ -26,15 +30,6 @@ pub enum Error {
     ApiError(ErrorResponse),
 }
 
-impl Error {
-    pub fn not_found<S>(resource: S) -> Self
-    where
-        S: Into<String>,
-    {
-        Error::NotFound(resource.into())
-    }
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ErrorResponse {
     code: u16,
@@ -45,6 +40,8 @@ impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
             Error::NotFound(_) => StatusCode::NOT_FOUND,
+            Error::BadRequest(_) => StatusCode::BAD_REQUEST,
+            Error::Forbidden(_) => StatusCode::FORBIDDEN,
             Error::DeserializeError(_) => StatusCode::BAD_REQUEST,
             Error::DatabaseError(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::Unauthorized(_) => StatusCode::UNAUTHORIZED,
@@ -120,5 +117,37 @@ impl Error {
             }
         };
         Error::ApiError(error)
+    }
+
+    pub fn forbidden<S>(message: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Error::Forbidden(message.into())
+    }
+
+    pub fn unauthorized<S>(message: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Error::Unauthorized(message.into())
+    }
+
+    pub fn unimplemented() -> Self {
+        Error::Unimplemented
+    }
+
+    pub fn not_found<S>(resource: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Error::NotFound(resource.into())
+    }
+
+    pub fn bad_request<S>(message: S) -> Self
+    where
+        S: Into<String>,
+    {
+        Error::BadRequest(message.into())
     }
 }

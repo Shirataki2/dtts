@@ -1,4 +1,6 @@
-use crate::{Context, Error};
+pub mod dict;
+
+use crate::prelude::*;
 
 /// Test command
 #[poise::command(prefix_command, slash_command)]
@@ -21,4 +23,23 @@ You can edit your message to the bot and the bot will edit its response.",
     };
     poise::builtins::help(ctx, command.as_deref(), config).await?;
     Ok(())
+}
+
+/// Registers or unregisters application commands in this guild or globally
+#[poise::command(prefix_command, hide_in_help)]
+async fn register(ctx: Context<'_>) -> Result<(), Error> {
+    poise::builtins::register_application_commands_buttons(ctx).await?;
+    Ok(())
+}
+
+pub fn list_commands() -> Vec<poise::Command<Data, Error>> {
+    vec![
+        test(),
+        help(),
+        register(),
+        poise::Command {
+            subcommands: vec![dict::list(), dict::add()],
+            ..dict::dict()
+        },
+    ]
 }

@@ -5,12 +5,14 @@ extern crate serde;
 #[macro_use]
 extern crate maplit;
 
+pub mod check;
 pub mod commands;
 pub mod data;
 pub mod error;
 pub mod handler;
 pub mod logs;
 pub mod models;
+pub mod prelude;
 pub mod tasks;
 
 use std::sync::{atomic::AtomicBool, Arc};
@@ -19,15 +21,8 @@ use data::Data;
 use handler::handle_event;
 use poise::{serenity_prelude as serenity, Framework, FrameworkOptions};
 
-pub type Error = Box<dyn std::error::Error + Send + Sync>;
+pub type Error = error::Error;
 pub type Context<'a> = poise::Context<'a, Data, Error>;
-
-/// Registers or unregisters application commands in this guild or globally
-#[poise::command(prefix_command, hide_in_help)]
-async fn register(ctx: Context<'_>) -> Result<(), Error> {
-    poise::builtins::register_application_commands_buttons(ctx).await?;
-    Ok(())
-}
 
 async fn on_error(error: poise::FrameworkError<'_, Data, Error>) {
     match error {
@@ -69,7 +64,7 @@ async fn main() -> anyhow::Result<()> {
     let framework = Framework::builder()
         .client_settings(songbird::serenity::register)
         .options(FrameworkOptions {
-            commands: vec![register(), commands::test(), commands::help()],
+            commands: commands::list_commands(),
             prefix_options: poise::PrefixFrameworkOptions {
                 prefix: Some("!!".to_owned()),
                 ..Default::default()

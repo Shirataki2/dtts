@@ -18,6 +18,7 @@ useHead({
 <template>
   <LayoutContained variant="wide" v-if="!pending && guild">
     <VCard>
+      <PageTitle />
       <ServerHeader :server="guild" />
       <ServerFunctions :server="guild" />
 

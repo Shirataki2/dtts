@@ -9,7 +9,7 @@ export const customLightTheme: ThemeDefinition = {
     primary: colors.lightBlue.lighten2,
     secondary: colors.lime.lighten2,
     success: colors.teal.lighten2,
-    warning: colors.amber.lighten2,
+    warning: colors.orange.darken1,
     error: colors.red.lighten2,
     info: colors.cyan.lighten2,
     'on-background': colors.shades.black,

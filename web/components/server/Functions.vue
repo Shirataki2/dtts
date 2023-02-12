@@ -47,13 +47,15 @@ const items: Item[] = [
     description: '読み上げ時の設定を変更できます。',
     callback: () => {},
   },
-  { kind: 'category', name: 'その他' },
+  { kind: 'category', name: '管理' },
   {
     kind: 'function',
-    name: 'サーバーからの退出',
-    icon: 'mdi-account-remove',
-    description: 'このサーバーからBotを退出させます。',
-    callback: () => {},
+    name: '権限設定',
+    icon: 'mdi-account-key',
+    description: 'Botのサービスの内容を変更できるユーザーをDiscordの権限をもとに設定します。',
+    callback: () => {
+      router.push(`/servers/${props.server.id}/permission`)
+    },
   },
 ]
 
