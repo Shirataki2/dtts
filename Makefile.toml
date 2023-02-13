@@ -20,6 +20,7 @@ description = "Install docker dependencies and create grafana buckets"
 script = """
 docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions || true
 docker run --rm -v $(pwd)/data/grafana:/dir alpine chown 472:472 /dir -R
+docker run --rm -v $(pwd)/.data/grafana:/dir alpine chown 472:472 /dir -R
 docker-compose -f docker-compose.${ENV}.yml restart grafana
 docker exec -it influxdb /bin/bash -c \
   'influx v1 dbrp create \
