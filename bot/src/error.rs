@@ -4,6 +4,8 @@ pub enum Error {
     Serenity(poise::serenity_prelude::SerenityError),
     #[error("Error from database: {0}")]
     Database(sqlx::Error),
+    #[error("Guild only")]
+    GuildOnly,
 }
 
 impl From<poise::serenity_prelude::SerenityError> for Error {

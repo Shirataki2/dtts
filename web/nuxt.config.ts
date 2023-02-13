@@ -31,6 +31,9 @@ export default defineNuxtConfig({
     define: {
       'process.env.DEBUG': false,
     },
+    build: {
+      target: 'es2020',
+    },
   },
   modules: ['@vueuse/nuxt', '@kevinmarrec/nuxt-pwa', '@nuxt/devtools'],
   pwa: {

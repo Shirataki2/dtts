@@ -15,11 +15,11 @@ const emits = defineEmits<{
 }>()
 
 const userPermissions = [
-  { label: 'チャンネル閲覧', bit: 1n << 10n },
-  { label: 'メッセージ送信', bit: 1n << 11n },
-  { label: 'コマンドの使用', bit: 1n << 31n },
-  { label: 'メッセージ管理', bit: 1n << 13n },
-  { label: 'ロール管理', bit: 1n << 28n },
+  { label: 'チャンネル閲覧', bit: 2 ** 10 },
+  { label: 'メッセージ送信', bit: 2 ** 11 },
+  { label: 'コマンドの使用', bit: 2 ** 31 },
+  { label: 'メッセージ管理', bit: 2 ** 13 },
+  { label: 'ロール管理', bit: 2 ** 28 },
 ]
 
 const servicePermissions = [
@@ -33,7 +33,7 @@ const permsToMatrix = (perms: ServerPermission[]) => {
   const matrix: Array<boolean> = Array(servicePermissions.length * userPermissions.length).fill(false)
   for (const perm of perms) {
     const row = servicePermissions.findIndex(row => row.tag === perm.tag)
-    const cols = userPermissions.map(col => (BigInt(perm.permission_bit) & col.bit) > 0)
+    const cols = userPermissions.map(col => (BigInt(perm.permission_bit) & BigInt(col.bit)) > 0)
     for (let x = 0; x < cols.length; x++) {
       matrix[row * W + x] = cols[x]
     }
@@ -46,10 +46,10 @@ const matrix = ref(permsToMatrix(klona(props.perms)))
 const matrixToPerms = (matrix: Array<boolean>) => {
   const perms: ServerPermissionBody[] = []
   for (let y = 0; y < servicePermissions.length; y++) {
-    let bit = 0n
+    let bit = BigInt(0)
     for (let x = 0; x < userPermissions.length; x++) {
       if (matrix[y * W + x]) {
-        bit |= userPermissions[x].bit
+        bit |= BigInt(userPermissions[x].bit)
       }
       perms.push({
         tag: servicePermissions[y].tag,

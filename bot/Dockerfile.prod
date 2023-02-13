@@ -1,0 +1,3 @@
+FROM rust:1.67
+RUN apt update -y && apt install -y opus-tools cmake
+CMD ["bash", "./prod.sh"]

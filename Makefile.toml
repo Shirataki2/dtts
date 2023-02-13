@@ -18,7 +18,7 @@ args = ["make", "--list-all-steps"]
 category = "Docker"
 description = "Install docker dependencies and create grafana buckets"
 script = """
-docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions || true
 docker run --rm -v $(pwd)/data/grafana:/dir alpine chown 472:472 /dir -R
 docker-compose -f docker-compose.${ENV}.yml restart grafana
 docker exec -it influxdb /bin/bash -c \
@@ -40,6 +40,12 @@ category = "Docker"
 description = "Create and Start docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "up", "-d", "${@}"]
+
+[tasks.attach]
+category = "Docker"
+description = "Create and Start docker containers"
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "up", "${@}"]
 
 [tasks.ps]
 category = "Docker"

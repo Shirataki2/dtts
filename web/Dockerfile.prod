@@ -1,0 +1,18 @@
+FROM node:18.13-alpine as builder
+WORKDIR /app
+
+ADD package.json ./
+RUN yarn --frozen-lockfile --non-interactive
+ADD . .
+RUN yarn build
+
+FROM node:18.13-alpine
+WORKDIR /app
+ADD package.json ./
+ADD nuxt.config.ts ./
+ADD tsconfig.json ./
+
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/node_modules ./node_modules
+
+CMD ["yarn", "start"]
