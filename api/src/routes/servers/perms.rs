@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::prelude::*;
 
 #[get("/perms")]
@@ -26,7 +28,10 @@ pub async fn patch_perms(
 ) -> Result<HttpResponse, Error> {
     let client = get_bot_client(&req)?;
     let guild_id = query.id;
-    if !user.is_server_mod(guild_id, &client).await {
+    let perm_bit = user.get_perm_bits(guild_id, &client).await;
+    let is_mod = user.is_server_mod(perm_bit).await;
+
+    if !is_mod {
         return Err(Error::forbidden("You are not a server moderator!"));
     }
     let pool = get_data::<PgPool>(&req)?;
@@ -55,6 +60,7 @@ pub async fn test(
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServerMemberPermissionCheckBody {
     pub is_mod: bool,
+    pub perms: HashMap<String, bool>,
 }
 
 #[get("/perms/check")]
@@ -65,7 +71,64 @@ pub async fn check_perms(
 ) -> Result<HttpResponse, Error> {
     let client = get_bot_client(&req)?;
     let guild_id = query.id;
-    let is_mod = user.is_server_mod(guild_id, &client).await;
-    let body = ServerMemberPermissionCheckBody { is_mod };
+    let perm_bit = user.get_perm_bits(guild_id, &client).await;
+    let is_mod = user.is_server_mod(perm_bit).await;
+
+    let pool = get_data::<PgPool>(&req)?;
+
+    let perms = ServerPermission::get_by_guild_id(pool, query.id).await?;
+    let perms = perms
+        .iter()
+        .map(|p| {
+            (
+                p.tag.clone(),
+                (p.permission_bit & perm_bit as i64) > 0 || is_mod,
+            )
+        })
+        .collect::<HashMap<_, _>>();
+
+    let body = ServerMemberPermissionCheckBody { is_mod, perms };
     Ok(HttpResponse::Ok().json(body))
+}
+
+pub async fn check_user_perms(
+    key: &str,
+    req: &HttpRequest,
+    user: &Member,
+    guild_id: i64,
+) -> Result<(), Error> {
+    let client = get_bot_client(req)?;
+    let perm_bit = user.get_perm_bits(guild_id, &client).await;
+    let is_mod = user.is_server_mod(perm_bit).await;
+
+    let pool = get_data::<PgPool>(req)?;
+
+    let perms = ServerPermission::get_by_guild_id(pool, guild_id).await?;
+    let perms = perms
+        .iter()
+        .map(|p| {
+            info!(
+                "{}: {} & {} = {}",
+                &p.tag,
+                p.permission_bit,
+                perm_bit,
+                (p.permission_bit & perm_bit as i64) > 0
+            );
+            (
+                p.tag.clone(),
+                (p.permission_bit & perm_bit as i64) > 0 || is_mod,
+            )
+        })
+        .collect::<HashMap<_, _>>();
+    let perms = match perms.get(key) {
+        Some(p) => *p,
+        None => {
+            error!("Permission {} not found", key);
+            return Err(Error::Unimplemented);
+        }
+    };
+    if !perms {
+        return Err(Error::forbidden("You do not have permission"));
+    }
+    Ok(())
 }

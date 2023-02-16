@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { getApiUrl } from '@/src/utils'
-import { ServerPermission, ServerPermissionBody } from '@/types'
+import { MemberPerm, ServerPermission, ServerPermissionBody } from '@/types'
 import JSONb from 'json-bigint'
+import { klona } from 'klona'
 
 useHead({
   title: '権限編集',
@@ -10,12 +11,15 @@ useHead({
 const { params } = useRoute()
 const id = typeof params.id === 'string' ? params.id : params.id[0]
 
-interface MemberPerm {
-  is_mod: boolean
-}
+const initialPerm = ref<ServerPermission[] | null>(null)
+const isDirty = computed(() => {
+  return JSONb.stringify(initialPerm.value) !== JSONb.stringify(perms.value)
+})
+useConfirm(isDirty)
 
 const perms = ref<ServerPermission[]>([])
 const isMod = ref(true)
+const onLoad = ref(true)
 const { data: memberPerm, pending: pending1 } = useFetch<MemberPerm>(getApiUrl('/servers/perms/check'), {
   params: {
     id: id,
@@ -38,20 +42,34 @@ const { data: serverPerms, pending: pending2 } = useFetch<ServerPermission[]>(ge
 watch(serverPerms, val => {
   if (val) {
     perms.value = val
+    if (onLoad.value) {
+      initialPerm.value = klona(val)
+      onLoad.value = false
+    }
   }
 })
 
-const save = async (perms: ServerPermissionBody[]) => {
-  console.log(perms)
-  return await $fetch(getApiUrl('/servers/perms'), {
+const save = async (_perms: ServerPermissionBody[]) => {
+  console.log(_perms)
+  await $fetch(getApiUrl('/servers/perms'), {
     method: 'PATCH',
-    body: JSONb.stringify(perms),
+    body: JSONb.stringify(_perms),
     params: {
       id: id,
     },
     headers: {
       'Content-Type': 'application/json',
     },
+  })
+  initialPerm.value = klona(perms.value)
+}
+
+const onChange = (val: ServerPermissionBody[]) => {
+  perms.value = val.map(v => {
+    return {
+      guild_id: BigInt(id),
+      ...v,
+    }
   })
 }
 </script>
@@ -66,13 +84,20 @@ const save = async (perms: ServerPermissionBody[]) => {
         <Paragraph>
           (サーバーの所有者、管理者、サーバー管理のいずれかの権限を持っている場合はここで設定した権限に関わらずすべての設定を変更できます。)
         </Paragraph>
-        <VAlert border="start" variant="tonal" v-if="!isMod" type="warning" class="my-5">
+        <AppAlert v-if="!isMod" type="warning">
           以下の設定を変更するには、サーバーの所有者、管理者、サーバー管理のいずれかの権限を持っている必要があります。
-        </VAlert>
+        </AppAlert>
         <LayoutCentered v-if="pending1 && pending2">
-          <VProgressCircular indeterminate />
+          <LoadingCircular />
         </LayoutCentered>
-        <PermMatrix v-else :disabled="!isMod || pending1 || pending2" :perms="perms" @save="save" />
+        <PermMatrix
+          v-else
+          :disabled="!isMod || pending1 || pending2"
+          :is-dirty="isDirty"
+          :perms="perms"
+          @save="save"
+          @change="onChange"
+        />
       </VCardText>
     </VCard>
   </LayoutContained>

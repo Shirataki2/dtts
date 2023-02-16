@@ -1,3 +1,10 @@
+use std::collections::HashMap;
+
+use crate::prelude::Error;
+
+use tokio::fs::File;
+use tokio::io::AsyncReadExt;
+
 #[derive(Clone, Debug)]
 pub struct ServerConfig {
     pub base_url: String,
@@ -46,8 +53,44 @@ impl ServerConfig {
             redis_url: std::env::var("REDIS_URL")
                 .unwrap_or_else(|_| "redis://redis:6379".to_string()),
             redis_key: std::env::var("REDIS_KEY").expect("REDIS_KEY must be set"),
-            stripe_secret_key: std::env::var("STRIPE_SECRET_KEY")
-                .unwrap_or_else(|_| "".to_string()), // TODO: remove this default
+            stripe_secret_key: std::env::var("STRIPE_SECRET_KEY").expect(
+                "STRIPE_SECRET_KEY must be set. You can get this from https://dashboard.stripe.com/apikeys"
+            )
         }
     }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct StripeConfig {
+    pub products: HashMap<String, StripeProducts>,
+}
+
+impl StripeConfig {
+    pub async fn load() -> Result<Self, Error> {
+        let mut file = File::open("Stripe.toml").await?;
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).await?;
+        let config: StripeConfig = toml::from_str(&contents)
+            .map_err(|e| Error::internal(format!("Failed to parse Stripe.toml: {}", e)))?;
+        Ok(config)
+    }
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct StripeProducts {
+    pub id: stripe::ProductId,
+    pub plans: Vec<StripePlan>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct StripePlan {
+    pub id: stripe::PlanId,
+    pub name: String,
+}
+
+#[tokio::test]
+async fn test_load_stripe_config() {
+    std::env::set_var("RUST_LOG", "trace");
+    let config = StripeConfig::load().await.unwrap();
+    println!("{:?}", config);
 }

@@ -2,7 +2,7 @@
 import { DictItem } from '@/types'
 import { UseRefHistoryRecord } from '@vueuse/core'
 import { klona } from 'klona'
-import { getApiUrl } from '~~/src/utils'
+import { getApiUrl } from '@/src/utils'
 
 interface Props {
   dict: DictItem[]
@@ -24,6 +24,7 @@ const emits = defineEmits<{
   (e: 'redo'): void
   (e: 'commit'): void
   (e: 'clear'): void
+  (e: 'afterSave'): void
 }>()
 
 const isDirty = computed(() => {
@@ -97,6 +98,7 @@ const saveDictToServer = async () => {
     })
     emits('clear')
     initialDict.value = klona(props.dict)
+    emits('afterSave')
   } catch (e) {
     console.error(e)
     showSnackbar({

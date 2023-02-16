@@ -30,8 +30,7 @@ useHead({
   </LayoutContained>
   <LayoutCentered variant="wide" v-else>
     <VCard>
-      <VProgressCircular class="mt-10" indeterminate />
-      <p class="my-7">サーバー情報を取得中...</p>
+      <LoadingCircular>サーバー情報を取得中...</LoadingCircular>
     </VCard>
   </LayoutCentered>
 </template>

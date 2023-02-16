@@ -21,5 +21,35 @@ export type ServerPermissionBody = {
 }
 
 export type ServerPermission = {
-  guild_id: string
+  guild_id: bigint
 } & ServerPermissionBody
+
+export interface MemberPerm {
+  is_mod: boolean
+  perms: Record<string, boolean>
+}
+
+export type NavbarRoute = {
+  name: string
+  icon: string
+  path: string
+  type: 'route'
+  sub?: boolean
+  external?: boolean
+  hideLogin?: boolean
+  hideLogout?: boolean
+  condition?: () => boolean
+}
+
+export type NavbarAction = {
+  name: string
+  icon: string
+  action: () => void
+  type: 'action'
+  sub?: boolean
+  hideLogin?: boolean
+  hideLogout?: boolean
+  condition?: () => boolean
+}
+
+export type NavbarItem = NavbarRoute | NavbarAction

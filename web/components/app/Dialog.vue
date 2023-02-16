@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useDialog } from '~~/composables/useDialog'
+import { useDialog } from '@/composables/useDialog'
 
 const { dialog, result } = useDialog()
 </script>

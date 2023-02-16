@@ -10,6 +10,7 @@ onMounted(() => {
 <template>
   <VApp>
     <AppHeader />
+    <AppNavDrawer />
     <div v-if="paddingSpaceOnLoad" style="height: 56px" />
     <VMain>
       <slot />

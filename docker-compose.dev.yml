@@ -6,6 +6,17 @@ x-logging: &default-logging
     loki-url: http://localhost:3100/loki/api/v1/push
 
 services:
+  ownership-helper:
+    image: ubuntu
+    container_name: ownership-helper
+    user: root
+    group_add:
+      - '1000'
+    volumes:
+      - api-target:/tmp/api-target:rw
+      - bot-target:/tmp/bot-target:rw
+      - web-modules:/tmp/web-modules:rw
+    command: bash -c "chown -R 1000:1000 /tmp/api-target /tmp/bot-target /tmp/web-modules"
   web:
     logging: *default-logging
     build:
@@ -15,12 +26,17 @@ services:
       - 3000
       - 6006:6006 # for storybook
       - 24678:24678 # for devtools
+    user: 1000:1000
     volumes:
       - ./web:/app:rw
+      - web-modules:/app/node_modules:rw
     working_dir: /app
     tty: true
     env_file:
       - .env.dev
+    depends_on:
+      ownership-helper:
+        condition: service_completed_successfully
     labels:
       traefik.http.routers.dtts-web.rule: PathPrefix(`/`)
       traefik.http.services.dtts-web.loadbalancer.server.port: 3000
@@ -33,9 +49,14 @@ services:
       - 5000
     volumes:
       - ./api:/app:rw
+      - api-target:/app/target:rw
     working_dir: /app
     entrypoint: cargo run --bin serve
     tty: true
+    depends_on:
+      ownership-helper:
+        condition: service_completed_successfully
+    user: 1000:1000
     env_file:
       - .env.dev
     labels:
@@ -49,9 +70,14 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile.dev
+    user: 1000:1000
     working_dir: /app
     volumes:
       - ./bot:/app:rw
+      - bot-target:/app/target:rw
+    depends_on:
+      ownership-helper:
+        condition: service_completed_successfully
     entrypoint: bash
     tty: true
     env_file:
@@ -61,7 +87,6 @@ services:
     logging: *default-logging
     image: postgres:15.1
     container_name: postgres
-    restart: always
     ports:
       - 12484:5432
     volumes:
@@ -73,7 +98,6 @@ services:
     logging: *default-logging
     image: redis:7.0
     container_name: redis
-    restart: always
     ports:
       - 6379
     volumes:
@@ -96,7 +120,6 @@ services:
     logging: *default-logging
     image: influxdb:2.6
     container_name: influxdb
-    restart: always
     ports:
       - 8086:8086
     volumes:
@@ -108,7 +131,6 @@ services:
     logging: *default-logging
     image: grafana/grafana:9.3.6
     container_name: grafana
-    restart: always
     ports:
       - 3000:3000
     volumes:
@@ -122,7 +144,6 @@ services:
     logging: *default-logging
     image: telegraf:1.25.0
     container_name: telegraf
-    restart: always
     volumes:
       - ./config/telegraf.conf:/etc/telegraf/telegraf.conf:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
@@ -139,8 +160,12 @@ services:
       - influxdb
   loki:
     image: grafana/loki:2.7.3
-    restart: always
     container_name: loki
     ports:
       - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
+
+volumes:
+  api-target:
+  bot-target:
+  web-modules:

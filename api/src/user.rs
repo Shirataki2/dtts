@@ -1,5 +1,6 @@
 use actix_session::Session;
 use actix_web::{http::StatusCode, FromRequest, HttpRequest};
+use poise::serenity_prelude::RoleId;
 
 use crate::prelude::*;
 use std::{ops, sync::Arc};
@@ -35,8 +36,8 @@ pub fn get_access_token(sess: &Session) -> Result<AccessToken, crate::error::Err
     }
 }
 
-async fn get_user_from_session(req: HttpRequest) -> Result<serenity::CurrentUser, Error> {
-    let sess = actix_session::Session::extract(&req).await?;
+pub async fn get_user_from_session(req: &HttpRequest) -> Result<serenity::CurrentUser, Error> {
+    let sess = actix_session::Session::extract(req).await?;
     if let Some(user) = sess.get::<serenity::CurrentUser>("user")? {
         Ok(user)
     } else {
@@ -58,7 +59,7 @@ impl FromRequest for User {
     ) -> Self::Future {
         let req2 = Arc::new(req.clone());
         Box::pin(async move {
-            let user = get_user_from_session(req2.as_ref().clone()).await?;
+            let user = get_user_from_session(req2.as_ref()).await?;
             Ok(User(user))
         })
     }
@@ -117,7 +118,7 @@ impl FromRequest for Member {
     ) -> Self::Future {
         let req2 = Arc::new(req.clone());
         Box::pin(async move {
-            let user = get_user_from_session(req2.as_ref().clone()).await?;
+            let user = get_user_from_session(req2.as_ref()).await?;
             let config = get_config(&req2)?;
             let bot_token = config.discord_bot_token.clone();
             let client = crate::client::Client::from_bot_token(&bot_token)?;
@@ -193,10 +194,12 @@ impl Member {
         }
         let guild_roles = guild.roles;
         debug!("Guild roles: {:?}", guild_roles);
-        let user_roles = &self.roles;
+        let mut user_roles = self.roles.clone();
+        // everyone role is same as guild id
+        user_roles.push(RoleId::from(guild_id as u64));
         debug!("User roles: {:?}", user_roles);
         let mut perms = 0;
-        for role in user_roles {
+        for role in user_roles.iter() {
             let role = guild_roles.get(role);
             let perm_bits = role.map(|r| r.permissions.bits()).unwrap_or_default();
             perms |= perm_bits;
@@ -205,8 +208,7 @@ impl Member {
         perms
     }
 
-    pub async fn is_server_mod(&self, guild_id: i64, client: &Client) -> bool {
-        let perms = self.get_perm_bits(guild_id, client).await;
+    pub async fn is_server_mod(&self, perms: u64) -> bool {
         let is_admin = perms & 0x8 != 0;
         let is_mod = perms & 0x20 != 0;
         is_admin || is_mod

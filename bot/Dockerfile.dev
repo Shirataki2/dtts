@@ -2,3 +2,5 @@ FROM rust:1.67
 WORKDIR /app
 
 RUN apt update && apt install -y opus-tools cmake
+
+USER 1000:1000

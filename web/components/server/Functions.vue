@@ -28,7 +28,7 @@ const items: Item[] = [
     kind: 'function',
     name: '使用状況',
     icon: 'mdi-chart-areaspline',
-    description: 'プランの変更や、読み上げ可能な残りの文字数などの確認を行います。',
+    description: '読み上げた文字数の確認等を行います。',
     callback: () => {},
   },
   {
@@ -55,6 +55,15 @@ const items: Item[] = [
     description: 'Botのサービスの内容を変更できるユーザーをDiscordの権限をもとに設定します。',
     callback: () => {
       router.push(`/servers/${props.server.id}/permission`)
+    },
+  },
+  {
+    kind: 'function',
+    name: '有料プラン購入',
+    icon: 'mdi-cash',
+    description: '有料プランを購入し、読み上げ文字数上限を増やすなどの機能を利用できるようにします。',
+    callback: () => {
+      router.push(`/servers/${props.server.id}/plan`)
     },
   },
 ]

@@ -4,13 +4,16 @@ import { ServerPermission, ServerPermissionBody } from '@/types'
 interface Props {
   perms: ServerPermission[]
   disabled?: boolean
+  isDirty?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   disabled: false,
+  isDirty: false,
 })
 
 const emits = defineEmits<{
+  (e: 'change', perms: ServerPermissionBody[]): void
   (e: 'save', perms: ServerPermissionBody[]): Promise<void>
 }>()
 
@@ -42,6 +45,15 @@ const permsToMatrix = (perms: ServerPermission[]) => {
 }
 
 const matrix = ref(permsToMatrix(klona(props.perms)))
+watch(
+  matrix,
+  () => {
+    console.log('matrix changed')
+    emits('change', matrixToPerms(matrix.value))
+    return matrix
+  },
+  { deep: true },
+)
 
 const matrixToPerms = (matrix: Array<boolean>) => {
   const perms: ServerPermissionBody[] = []
@@ -51,11 +63,11 @@ const matrixToPerms = (matrix: Array<boolean>) => {
       if (matrix[y * W + x]) {
         bit |= BigInt(userPermissions[x].bit)
       }
-      perms.push({
-        tag: servicePermissions[y].tag,
-        permission_bit: bit,
-      })
     }
+    perms.push({
+      tag: servicePermissions[y].tag,
+      permission_bit: bit,
+    })
   }
   return perms
 }
@@ -88,7 +100,9 @@ const onSave = async () => {
     <tr>
       <th />
       <th v-for="userPermission in userPermissions" :key="userPermission.label" class="user-permission-header">
-        {{ userPermission.label }}
+        <p>
+          {{ userPermission.label }}
+        </p>
       </th>
     </tr>
     <tr v-for="(servicePermission, y) in servicePermissions" :key="servicePermission.label">
@@ -104,13 +118,26 @@ const onSave = async () => {
       </td>
     </tr>
   </VTable>
-  <VBtn v-if="!disabled" :disabled="saving" variant="outlined" block color="success" class="mt-5" @click="onSave">
+  <VBtn
+    v-if="!disabled"
+    :disabled="saving || !props.isDirty"
+    variant="outlined"
+    block
+    color="success"
+    class="mt-5"
+    @click="onSave"
+  >
     保存
   </VBtn>
 </template>
 
 <style scoped>
 .user-permission-header {
+  text-align: center;
+}
+
+.user-permission-header p {
   writing-mode: vertical-rl;
+  display: inline-block;
 }
 </style>

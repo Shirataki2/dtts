@@ -2,7 +2,7 @@ use actix_session::Session;
 use actix_web::{http::header, web, HttpRequest, HttpResponse};
 use oauth2::{reqwest::async_http_client, AuthorizationCode, CsrfToken, PkceCodeVerifier};
 
-use crate::{error::Error, routes::get_data, OAuth2Client};
+use crate::{prelude::*, user::get_user_from_session};
 
 #[derive(Deserialize, Debug)]
 pub struct AuthRequestQuery {
@@ -74,6 +74,20 @@ pub async fn redirect(
     info!("Got token: {:?}", token);
     sess.insert("token", &token)?;
     info!("Inserted token into session");
+
+    let pool = get_data::<PgPool>(&req)?;
+    let user = get_user_from_session(&req).await?;
+    if Account::optional_get(pool, user.id.0 as i64)
+        .await?
+        .is_none()
+    {
+        let account = Account {
+            id: user.id.0 as i64,
+            customer_id: None,
+        };
+        account.create(pool).await?;
+        info!("Created account: {:?}", account);
+    }
 
     Ok(HttpResponse::Found()
         .append_header((header::LOCATION, "/"))

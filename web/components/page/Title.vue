@@ -1,4 +1,12 @@
 <script lang="ts" setup>
+interface Props {
+  hideButton?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  hideButton: false,
+})
+
 const router = useRouter()
 
 const back = () => {
@@ -8,7 +16,7 @@ const back = () => {
 
 <template>
   <VCardTitle class="text-center mt-1 mb-3">
-    <VBtn variant="text" icon @click="back" id="back-btn">
+    <VBtn v-if="!props.hideButton" variant="text" icon @click="back" id="back-btn">
       <VIcon>mdi-chevron-left</VIcon>
     </VBtn>
     <h1 class="text-h6"><slot /></h1>

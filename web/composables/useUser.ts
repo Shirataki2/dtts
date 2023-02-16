@@ -34,10 +34,10 @@ export const useUser = () => {
   }
 
   const userIcon = computed(() => {
-    if (user.value) {
+    if (user.value && user.value.avatar) {
       return `https://cdn.discordapp.com/avatars/${user.value.id}/${user.value.avatar}.png`
     }
-    return ''
+    return '/images/default_icon.png'
   })
 
   return {

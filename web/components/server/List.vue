@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Discord } from '@/types'
 import { useTheme } from 'vuetify'
-import { getIconUrl } from '~~/types/discord'
+import { getIconUrl } from '@/types/discord'
 const theme = useTheme()
 const conf = useRuntimeConfig()
 const router = useRouter()

@@ -79,13 +79,13 @@ validate.value = async () => {
   <VContainer>
     <VRow>
       <VCol cols="12">
-        <VForm ref="form" :disabled="saving">
+        <VForm ref="form" :disabled="saving || disabled">
           <VTable>
             <thead>
               <tr>
                 <th width="46%">単語</th>
                 <th width="46%">読み方</th>
-                <th width="8%">操作</th>
+                <th v-if="!disabled" width="8%">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -117,7 +117,7 @@ validate.value = async () => {
                     @keydown.enter="onEnter(item)"
                   />
                 </td>
-                <td>
+                <td v-if="!disabled">
                   <DictToolButton :id="`delete_${item.order}`" icon="mdi-delete" tip="削除" @click="deleteRow(item)" />
                 </td>
               </tr>

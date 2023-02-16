@@ -2,6 +2,8 @@ use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
+    #[error("Internal Server Error")]
+    Internal,
     #[error("{0} Not Found")]
     NotFound(String),
     #[error("{0}")]
@@ -28,6 +30,8 @@ pub enum Error {
     InvalidUrl(url::ParseError),
     #[error("{{0.message}}")]
     ApiError(ErrorResponse),
+    #[error("Server Internal Error")]
+    IoError(std::io::Error),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -39,6 +43,7 @@ pub struct ErrorResponse {
 impl ResponseError for Error {
     fn status_code(&self) -> StatusCode {
         match self {
+            Error::Internal => StatusCode::INTERNAL_SERVER_ERROR,
             Error::NotFound(_) => StatusCode::NOT_FOUND,
             Error::BadRequest(_) => StatusCode::BAD_REQUEST,
             Error::Forbidden(_) => StatusCode::FORBIDDEN,
@@ -52,6 +57,7 @@ impl ResponseError for Error {
             Error::InvalidResponseBody(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::InvalidUrl(_) => StatusCode::INTERNAL_SERVER_ERROR,
             Error::ApiError(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Error::IoError(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -81,8 +87,25 @@ impl From<actix_web::Error> for Error {
     }
 }
 
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        error!("!! IO Error occured!: {:?}", error);
+        Error::IoError(error)
+    }
+}
+
 impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Self {
+        Error::Custom {
+            code: StatusCode::INTERNAL_SERVER_ERROR,
+            message: error.to_string(),
+        }
+    }
+}
+
+impl From<stripe::StripeError> for Error {
+    fn from(error: stripe::StripeError) -> Self {
+        error!("Stripe Error: {:?}", error);
         Error::Custom {
             code: StatusCode::INTERNAL_SERVER_ERROR,
             message: error.to_string(),
@@ -117,6 +140,14 @@ impl Error {
             }
         };
         Error::ApiError(error)
+    }
+
+    pub fn internal<S>(message: S) -> Self
+    where
+        S: Into<String>,
+    {
+        error!("Internal Server Error: {}", message.into());
+        Error::Internal
     }
 
     pub fn forbidden<S>(message: S) -> Self

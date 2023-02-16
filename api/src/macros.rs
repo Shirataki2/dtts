@@ -5,7 +5,6 @@ macro_rules! check_response {
             return Err(Error::from_response($response).await);
         }
         let data = $response.text().await?;
-        debug!("{}", data);
         serde_json::from_str::<$ty>(&data)?
     }};
     ($response:expr) => {{

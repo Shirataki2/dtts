@@ -32,10 +32,11 @@ pub async fn get_dict(
 #[post("/dict")]
 pub async fn post_dict(
     req: HttpRequest,
-    _user: Member, // for auth
+    user: Member, // for auth
     query: Query<ServerDetailQuery>,
     body: Json<Vec<DictItem>>,
 ) -> Result<HttpResponse, Error> {
+    check_user_perms("dict.edit", &req, &user, query.id).await?;
     let pool = get_data::<PgPool>(&req)?;
     let dict = Dictionary::optional_get(pool, query.id).await?;
     if let Some(mut dict) = dict {

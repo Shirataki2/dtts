@@ -2,6 +2,7 @@ use actix_web::{http::StatusCode, web, HttpRequest};
 
 use crate::error::create_error;
 
+pub mod donate;
 pub mod oauth2;
 pub mod servers;
 pub mod users;
@@ -26,4 +27,5 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     cfg.service(web::scope("/oauth2").configure(oauth2::init_routes));
     cfg.service(web::scope("/users").configure(users::init_routes));
     cfg.service(web::scope("/servers").configure(servers::init_routes));
+    cfg.service(web::scope("/donate").configure(donate::init_routes));
 }

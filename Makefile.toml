@@ -72,6 +72,12 @@ description = "Execute command in docker container"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "exec", "${@}"]
 
+[tasks.rm]
+category = "Docker"
+description = "Remove docker containers"
+command = "docker-compose"
+args = ["@@split(DOCKER_ARGUMENTS, )", "rm", "${@}"]
+
 [tasks.stop]
 category = "Docker"
 description = "Stop docker containers"
@@ -89,3 +95,19 @@ category = "Docker"
 description = "Stop and remove docker containers"
 command = "docker-compose"
 args = ["@@split(DOCKER_ARGUMENTS, )", "down"]
+
+[tasks.yarn]
+category = "Docker"
+description = "Execute yarn command in docker container"
+script = """
+docker-compose -f docker-compose.${ENV}.yml exec web yarn ${@}
+cd web && yarn ${@} && cd ..
+"""
+
+[tasks.prerun]
+category = "Docker"
+description = "Install docker dependencies"
+script = """
+docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions || true
+cargo make -p prod build
+"""

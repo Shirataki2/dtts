@@ -18,6 +18,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       inviteUrl: process.env.DISCORD_BOT_INVITATION_URL || 'https://discord.gg/invite',
+      repositoryUrl: process.env.REPOSITORY_URL || 'https://github.com/username/repository',
     },
   },
   css: ['@/assets/styles/main.scss', 'vuetify/styles', '@mdi/font/css/materialdesignicons.min.css'],

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Discord } from '@/types'
-import { getIconUrl } from '~~/src/utils'
+import { getIconUrl } from '@/src/utils'
 
 interface Props {
   server: Discord.Guild
