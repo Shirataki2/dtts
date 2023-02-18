@@ -53,3 +53,13 @@ export type NavbarAction = {
 }
 
 export type NavbarItem = NavbarRoute | NavbarAction
+
+export type Payment = {
+  account_id: string
+  name: string
+  price: number
+  session_id: string
+  price_id: string
+  created_at: Date
+  subscription_id?: string
+}

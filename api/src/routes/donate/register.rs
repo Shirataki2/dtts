@@ -60,8 +60,18 @@ pub async fn register(
 
     let price_id = query.price_id.to_string();
 
+    let name = if is_subscribed {
+        "寄付 (継続)"
+    } else {
+        "寄付 (一回)"
+    };
+
+    let price = session.amount_total.unwrap_or(0) as i32;
+
     let payment = Payment {
         account_id: user.id.0 as i64,
+        name: name.to_string(),
+        price,
         session_id: session_id.to_string(),
         price_id,
         subscription_id,

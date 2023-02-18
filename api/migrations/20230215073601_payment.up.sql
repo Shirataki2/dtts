@@ -6,6 +6,8 @@ CREATE TABLE account (
 
 CREATE TABLE payment (
     account_id BIGINT NOT NULL REFERENCES account(id),
+    name VARCHAR(64) NOT NULL,
+    price INT NOT NULL,
     session_id VARCHAR(128) NOT NULL,
     price_id VARCHAR(32) NOT NULL,
     subscription_id VARCHAR(64),

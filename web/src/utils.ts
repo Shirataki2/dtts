@@ -12,3 +12,11 @@ export const getIconUrl = (server: Discord.Guild) => {
     return '/images/default_icon.png'
   }
 }
+
+export const getAvatarUrl = (server: Discord.ClientUser) => {
+  if (server.avatar) {
+    return `https://cdn.discordapp.com/avatars/${server.id}/${server.avatar}.png`
+  } else {
+    return '/images/default_icon.png'
+  }
+}
